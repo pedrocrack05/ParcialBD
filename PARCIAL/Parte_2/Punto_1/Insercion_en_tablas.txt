@@ -1,0 +1,55 @@
+INSERT INTO functions(function_name) VALUES ('Athlete'),('Alternate Athlete');
+
+INSERT INTO Athletes (code, name, gender, birth_date, height, weight, nationality_code, function_id)
+SELECT
+    t.code,
+    t.name,
+    t.gender,
+    t.birth_date,
+    t.height,
+    t.weight,
+    t.nationality_code,
+    f.function_id
+FROM
+    Temp_Athletes AS t
+        JOIN
+    Functions AS f
+    ON t.function_name = f.function_name;
+
+
+
+INSERT INTO Disciplines (discipline_name)
+SELECT DISTINCT unnest(disciplines)
+FROM Temp_Athlete_Details
+ON CONFLICT (discipline_name) DO NOTHING;
+
+INSERT INTO Events (event_name)
+SELECT DISTINCT unnest(events)
+FROM Temp_Athlete_Details
+ON CONFLICT (event_name) DO NOTHING;
+
+INSERT INTO Athlete_Disciplines_Events (athlete_code, discipline_id, event_id)
+SELECT
+    t.code,
+    d.discipline_id,
+    e.event_id
+FROM
+    Temp_Athlete_Details AS t
+        JOIN
+    Disciplines AS d
+    ON d.discipline_name = ANY(t.disciplines)
+        JOIN
+Events AS e
+    ON e.event_name = ANY(t.events);
+
+INSERT INTO Avg_Height_Weight_By_Nationality (nationality_code, avg_height, avg_weight)
+SELECT
+    nationality_code,
+    AVG(height) AS avg_height,
+    AVG(weight) AS avg_weight
+FROM
+    Athletes
+WHERE
+    height IS NOT NULL AND weight IS NOT NULL
+GROUP BY
+    nationality_code;

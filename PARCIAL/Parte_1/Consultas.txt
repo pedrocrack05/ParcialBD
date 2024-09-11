@@ -1,0 +1,66 @@
+-- Obtener la lista de eventos próximos
+SELECT event_name, event_date, location
+FROM events
+WHERE event_date > CURRENT_TIMESTAMP
+ORDER BY event_date ASC;
+
+-- Ver el perfil de un modelo con su galería de medios
+SELECT m.name, m.biography, me.media_type, me.url
+FROM models m
+         JOIN media me ON m.model_id = me.model_id
+WHERE m.name = 'Queen Bella';
+
+-- Ver las entradas compradas por un usuario específico
+SELECT u.username, e.event_name, t.purchase_date
+FROM tickets t
+         JOIN users u ON t.user_id = u.user_id
+         JOIN events e ON t.event_id = e.event_id
+WHERE u.username = 'attendee_user';
+
+-- Obtener la cantidad de entradas vendidas por evento
+SELECT e.event_name, COUNT(t.ticket_id) AS total_tickets_sold
+FROM events e
+         LEFT JOIN tickets t ON e.event_id = t.event_id
+GROUP BY e.event_id
+ORDER BY total_tickets_sold DESC;
+
+-- Obtener la calificación promedio de cada evento
+SELECT e.event_name, AVG(f.rating) AS average_rating
+FROM feedback f
+         JOIN events e ON f.event_id = e.event_id
+GROUP BY e.event_name
+ORDER BY average_rating DESC;
+
+-- Ver los eventos donde ha participado un modelo
+SELECT e.event_name, e.event_date, e.location
+FROM events e
+         JOIN tickets t ON e.event_id = t.event_id
+         JOIN users u ON t.user_id = u.user_id
+         JOIN models m ON u.user_id = m.user_id
+WHERE m.name = 'Queen Glitter';
+
+-- Listar todos los comentarios de un evento específico
+SELECT u.username, f.comments, f.rating
+FROM feedback f
+         JOIN users u ON f.user_id = u.user_id
+WHERE f.event_id = 1;
+
+-- Ver el rol de cada usuario registrado en el sistema
+SELECT u.username, r.role_name
+FROM users u
+         JOIN roles r ON u.role_id = r.role_id;
+
+-- Buscar modelos que tengan más de un medio (foto o video) en su perfil
+SELECT m.name, COUNT(me.media_id) AS media_count
+FROM models m
+         JOIN media me ON m.model_id = me.model_id
+GROUP BY m.name
+HAVING COUNT(me.media_id) > 1;
+
+-- Obtener los eventos organizados por fecha y el número de asistentes registrados
+SELECT e.event_name, e.event_date, COUNT(t.ticket_id) AS attendees
+FROM events e
+         LEFT JOIN tickets t ON e.event_id = t.event_id
+GROUP BY e.event_name, e.event_date
+ORDER BY e.event_date ASC;
+

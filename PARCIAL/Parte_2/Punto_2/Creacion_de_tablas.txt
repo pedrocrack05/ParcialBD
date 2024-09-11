@@ -1,0 +1,102 @@
+CREATE TABLE categories (
+                            category_id  SERIAL PRIMARY KEY, 
+                            category_name VARCHAR(255) NOT NULL 
+);
+
+CREATE TABLE cities (
+                        city_id SERIAL PRIMARY KEY,
+                        city_name VARCHAR(255) NOT NULL,
+                        state VARCHAR(10) NOT NULL  
+);
+
+CREATE TABLE addresses (
+                           address_id SERIAL PRIMARY KEY,
+                           address VARCHAR(255),
+                           city_id INT,
+                           latitude VARCHAR(50),
+                           longitude VARCHAR(50),
+                           FOREIGN KEY (city_id) REFERENCES cities(city_id)
+);
+
+CREATE TABLE sources (
+                         source_id SERIAL PRIMARY KEY,
+                         source_name VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE amenities (
+                           amenity_id SERIAL PRIMARY KEY,
+                           amenity_name VARCHAR(255) NOT NULL UNIQUE
+);
+
+
+CREATE TABLE pet_types (
+                      pet_type_id SERIAL PRIMARY KEY,
+                      pet_type_name VARCHAR(255) NOT NULL UNIQUE 
+);
+
+
+CREATE TABLE apartments (
+                            apartment_id BIGSERIAL PRIMARY KEY,
+                            title VARCHAR(255) NOT NULL,
+                            body TEXT,
+                            bathrooms DECIMAL,  
+                            bedrooms INT, 
+                            price BIGINT,
+                            currency VARCHAR(10),
+                            fee VARCHAR(10),
+                            has_photo VARCHAR(50),
+                            price_display VARCHAR(50),
+                            price_type VARCHAR(50),
+                            square_feet BIGINT,
+                            address_id INT,
+                            city_id INT,
+                            source_id INT,   
+                            category_id INT, 
+                            time VARCHAR(255), 
+                            FOREIGN KEY (address_id) REFERENCES addresses(address_id),
+                            FOREIGN KEY (source_id) REFERENCES sources(source_id),
+                            FOREIGN KEY (category_id) REFERENCES categories(category_id),
+                            FOREIGN KEY (city_id) REFERENCES cities(city_id)
+);
+
+
+CREATE TABLE apartment_amenities (
+                                     apartment_id BIGINT,
+                                     amenity_id INT,
+                                     PRIMARY KEY (apartment_id, amenity_id),
+                                     FOREIGN KEY (apartment_id) REFERENCES apartments(apartment_id),
+                                     FOREIGN KEY (amenity_id) REFERENCES amenities(amenity_id)
+);
+
+
+CREATE TABLE apartment_pet_types (
+                                apartment_id BIGINT,
+                                pet_type_id INT,
+                                PRIMARY KEY (apartment_id, pet_type_id),
+                                FOREIGN KEY (apartment_id) REFERENCES apartments(apartment_id),
+                                FOREIGN KEY (pet_type_id) REFERENCES pet_types(pet_type_id)
+);
+
+CREATE TABLE temp_apartments_with_amenities_and_pets (
+                                        apartment_id BIGSERIAL PRIMARY KEY,
+                                        title VARCHAR(255),
+                                        body TEXT,
+                                        bathrooms DECIMAL,
+                                        bedrooms INT,
+                                        price BIGINT,
+                                        currency VARCHAR(10),
+                                        fee VARCHAR(10),
+                                        has_photo VARCHAR(50),
+                                        pets_allowed TEXT, 
+                                        amenities TEXT,  
+                                        price_display VARCHAR(50),
+                                        price_type VARCHAR(50),
+                                        square_feet BIGINT,
+                                        city_id INT,
+                                        address_id INT, --
+                                        source_id INT,
+                                        category_id INT,
+                                        time VARCHAR(255)
+);
+DROP TABLE temp_apartments_with_amenities_and_pets;

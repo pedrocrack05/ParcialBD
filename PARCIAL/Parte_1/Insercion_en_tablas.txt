@@ -1,0 +1,40 @@
+-- Inserción de datos en la tabla roles
+INSERT INTO roles (role_name) VALUES
+                                  ('Admin'),
+                                  ('Organizer'),
+                                  ('Model'),
+                                  ('Attendee');
+
+-- Inserción de datos en la tabla users
+INSERT INTO users (username, password, email, role_id) VALUES
+                                                           ('admin_user', 'hashed_password1', 'admin@eia.com', 1), -- Admin
+                                                           ('organizer_user', 'hashed_password2', 'organizer@eia.com', 2), -- Organizador
+                                                           ('model_user', 'hashed_password3', 'model@eia.com', 3), -- Modelo
+                                                           ('attendee_user', 'hashed_password4', 'attendee@eia.com', 4); -- Asistente
+
+-- Inserción de datos en la tabla events
+INSERT INTO events (event_name, event_date, location) VALUES
+                                                          ('Dwarf Drag Queen Fashion Show 2024', '2024-11-15 19:00:00', 'Auditorio Universidad EIA'),
+                                                          ('Dwarf Drag Queens Parade', '2024-11-16 18:00:00', 'Plaza Central Medellín');
+
+-- Inserción de datos en la tabla models
+INSERT INTO models (name, biography, user_id) VALUES
+                                                  ('Queen Bella', 'Una modelo enana destacada por su estilo único y glamoroso.', 3),
+                                                  ('Queen Glitter', 'Apasionada por la moda y el empoderamiento.', 3);
+
+-- Inserción de datos en la tabla media
+INSERT INTO media (media_type, url, model_id) VALUES
+                                                  ('photo', 'https://example.com/photo1.jpg', 1),
+                                                  ('video', 'https://example.com/video1.mp4', 1),
+                                                  ('photo', 'https://example.com/photo2.jpg', 2),
+                                                  ('video', 'https://example.com/video2.mp4', 2);
+
+-- Inserción de datos en la tabla tickets
+INSERT INTO tickets (user_id, event_id) VALUES
+                                            (4, 1), -- Asistente comprando para el primer evento
+                                            (4, 2); -- Asistente comprando para el segundo evento
+
+-- Inserción de datos en la tabla feedback
+INSERT INTO feedback (event_id, user_id, comments, rating) VALUES
+                                                               (1, 4, 'Un evento fabuloso, todo estuvo increíble.', 5),
+                                                               (2, 4, 'La pasé genial, espero que haya más eventos como este.', 4);

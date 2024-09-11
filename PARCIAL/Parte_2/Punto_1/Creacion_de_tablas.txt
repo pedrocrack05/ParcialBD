@@ -1,0 +1,81 @@
+
+CREATE TABLE Nationalities (
+                               nationality_code VARCHAR(3) PRIMARY KEY,
+                               nationality VARCHAR(50),
+                               nationality_full VARCHAR(100)
+);
+
+CREATE TABLE Functions (
+                           function_id SERIAL PRIMARY KEY,
+                           function_name VARCHAR(50)
+);
+
+CREATE TABLE Athletes (
+                          code VARCHAR(10) PRIMARY KEY,
+                          name VARCHAR(100),
+                          gender VARCHAR(10),
+                          birth_date DATE,
+                          height NUMERIC,
+                          weight NUMERIC,
+                          nationality_code VARCHAR(3),
+                          function_id INT,
+                          FOREIGN KEY (nationality_code) REFERENCES Nationalities(nationality_code),
+                          FOREIGN KEY (function_id) REFERENCES Functions(function_id)
+);
+
+CREATE TABLE Temp_Athletes (
+                               code VARCHAR(10),
+                               name VARCHAR(100),
+                               gender VARCHAR(10),
+                               birth_date DATE,
+                               height INTEGER,
+                               weight INTEGER,
+                               nationality_code VARCHAR(3),
+                               function_name VARCHAR(100)
+);
+
+DROP TABLE IF EXISTS Temp_Athletes;
+
+CREATE TABLE Athlete_Names (
+                               code VARCHAR(10),
+                               name_short VARCHAR(50),
+                               name_tv VARCHAR(50),
+                               PRIMARY KEY (code, name_short),
+                               FOREIGN KEY (code) REFERENCES Athletes(code)
+);
+
+CREATE TABLE Disciplines (
+                             discipline_id SERIAL PRIMARY KEY,
+                             discipline_name VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE Events (
+                        event_id SERIAL PRIMARY KEY,
+                        event_name VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE Athlete_Disciplines_Events (
+                                            athlete_code VARCHAR(10),
+                                            discipline_id INT,
+                                            event_id INT,
+                                            FOREIGN KEY (athlete_code) REFERENCES Athletes(code),
+                                            FOREIGN KEY (discipline_id) REFERENCES Disciplines(discipline_id),
+                                            FOREIGN KEY (event_id) REFERENCES Events(event_id),
+                                            PRIMARY KEY (athlete_code, discipline_id, event_id)
+);
+
+CREATE TABLE Temp_Athlete_Details (
+                                      code VARCHAR(10),
+                                      disciplines TEXT[], -- Array de disciplinas
+                                      events TEXT[]       -- Array de eventos
+);
+
+DROP TABLE Temp_Athlete_Details;
+
+CREATE TABLE Avg_Height_Weight_By_Nationality (
+                                                  nationality_code VARCHAR(3),
+                                                  avg_height NUMERIC,
+                                                  avg_weight NUMERIC,
+                                                  PRIMARY KEY (nationality_code),
+                                                  FOREIGN KEY (nationality_code) REFERENCES Nationalities(nationality_code)
+);

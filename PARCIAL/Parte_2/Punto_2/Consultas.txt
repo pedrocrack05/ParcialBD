@@ -1,0 +1,89 @@
+--4)
+SELECT title, price_display, bedrooms
+FROM apartments
+WHERE city_id = (SELECT city_id FROM cities WHERE city_name = 'Milwaukee');
+
+--5)
+SELECT c.state, COUNT(*) AS num_listings
+FROM apartments a
+         JOIN cities c ON a.city_id = c.city_id
+GROUP BY c.state
+HAVING COUNT(*) > 5;
+
+--6)
+SELECT c.city_name, AVG(a.price) AS avg_price, COUNT(*) AS num_apartments
+FROM apartments a
+         JOIN cities c ON a.city_id = c.city_id
+WHERE a.bedrooms >= 2
+GROUP BY c.city_name;
+
+--7)
+SELECT a.title, a.price_display, ad.address
+FROM apartments a
+         JOIN addresses ad ON a.address_id = ad.address_id
+WHERE a.title ILIKE '%luxury%' OR a.body ILIKE '%luxury%';
+
+--8)
+
+CREATE VIEW apartment_price_per_sqft AS
+SELECT apartment_id, title, price, square_feet, price / square_feet AS price_per_sqft
+FROM apartments;
+
+WITH MedianPrice AS (
+    SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY price_per_sqft) AS median_price
+    FROM apartment_price_per_sqft
+)
+SELECT *
+FROM apartment_price_per_sqft, MedianPrice
+WHERE price_per_sqft > median_price;
+
+--9)
+CREATE TEMP TABLE top_10_expensive_apartments AS
+WITH RankedApartments AS (
+    SELECT a.*, c.state, ROW_NUMBER() OVER (PARTITION BY c.state ORDER BY a.price DESC) AS rank
+    FROM apartments a
+             JOIN addresses ad ON a.address_id = ad.address_id
+             JOIN cities c ON ad.city_id = c.city_id
+)
+SELECT apartment_id, price, state
+FROM RankedApartments
+WHERE rank <= 10;
+
+-- Consultar el precio promedio de los apartamentos más caros por estado
+SELECT state, AVG(price) AS average_price
+FROM top_10_expensive_apartments
+GROUP BY state;
+
+--10)
+CREATE TEMP TABLE temp_inconsistencies (
+                                           apartment_id BIGINT,
+                                           title VARCHAR(255),
+                                           inconsistency TEXT
+);
+
+DO $$
+    DECLARE
+        rec RECORD;
+        desc_bedrooms INT;
+        inconsistency_msg TEXT;
+    BEGIN
+        FOR rec IN
+            SELECT apartment_id, title, bedrooms, body
+            FROM apartments
+            LOOP
+                desc_bedrooms := NULL;
+
+                SELECT INTO desc_bedrooms
+                    (regexp_matches(rec.body, '\b(\d+)\s+bedrooms?', 'i'))[1]::INT;
+                IF desc_bedrooms IS NOT NULL AND desc_bedrooms != rec.bedrooms THEN
+                    inconsistency_msg := 'Mismatch: Stated ' || rec.bedrooms || ' bedrooms but description mentions ' || desc_bedrooms || ' bedrooms';
+                ELSE
+                    inconsistency_msg := 'No inconsistency found';
+                END IF;
+
+                INSERT INTO temp_inconsistencies (apartment_id, title, inconsistency)
+                VALUES (rec.apartment_id, rec.title, inconsistency_msg);
+            END LOOP;
+    END $$;
+
+SELECT * FROM temp_inconsistencies;

@@ -1,0 +1,93 @@
+-- 1)
+SELECT a.name,
+       STRING_AGG(d.discipline_name, ', ') AS disciplines,
+       COUNT(ad.discipline_id) AS num_disciplines
+FROM Athletes a
+         JOIN Athlete_Disciplines_Events ad ON a.code = ad.athlete_code
+         JOIN Disciplines d ON ad.discipline_id = d.discipline_id
+WHERE a.gender = 'Female'
+GROUP BY a.name
+HAVING COUNT(ad.discipline_id) > 1;
+
+-- 2)
+SELECT a.name, n.nationality_full
+FROM Athletes a
+         JOIN Nationalities n ON a.nationality_code = n.nationality_code
+WHERE a.birth_date >= '2001-01-01'
+  AND a.weight > (SELECT AVG(weight) FROM Athletes);
+
+--3)
+SELECT n.nationality_full, COUNT(a.code) AS num_athletes
+FROM Athletes a
+         JOIN Nationalities n ON a.nationality_code = n.nationality_code
+GROUP BY n.nationality_full
+HAVING COUNT(a.code) > 5;
+
+--4)
+         -- Atleta más joven
+SELECT a.name, a.birth_date, n.nationality
+FROM Athletes a
+         JOIN Nationalities n ON a.nationality_code = n.nationality_code
+ORDER BY a.birth_date DESC
+LIMIT 1;
+
+         -- Atleta más viejo
+SELECT a.name, a.birth_date, n.nationality
+FROM Athletes a
+         JOIN Nationalities n ON a.nationality_code = n.nationality_code
+ORDER BY a.birth_date ASC
+LIMIT 1;
+
+--5)
+CREATE TEMP TABLE Temp_Athlete_Event_Count AS
+SELECT a.code, a.name, COUNT(e.event_id) AS num_events
+FROM Athletes a
+         JOIN Athlete_Disciplines_Events ade ON a.code = ade.athlete_code
+         JOIN Events e ON ade.event_id = e.event_id
+GROUP BY a.code, a.name
+HAVING COUNT(e.event_id) > 3;
+
+SELECT te.name, e.event_name, te.num_events
+FROM Temp_Athlete_Event_Count te
+         JOIN Athlete_Disciplines_Events ade ON te.code = ade.athlete_code
+         JOIN Events e ON ade.event_id = e.event_id;
+
+--6)
+CREATE VIEW Athlete_Event_View AS
+SELECT a.code, a.name, COUNT(e.event_id) AS num_events
+FROM Athletes a
+         JOIN Athlete_Disciplines_Events ade ON a.code = ade.athlete_code
+         JOIN Events e ON ade.event_id = e.event_id
+GROUP BY a.code, a.name;
+
+SELECT * FROM Athlete_Event_View WHERE num_events = 2;
+
+--7)
+CREATE TEMP TABLE Temp_Avg_Height_Weight_Nationality AS
+SELECT n.nationality_code, AVG(a.height) AS avg_height, AVG(a.weight) AS avg_weight
+FROM Athletes a
+         JOIN Nationalities n ON a.nationality_code = n.nationality_code
+GROUP BY n.nationality_code;
+
+SELECT t.nationality_code, n.nationality, t.avg_height, t.avg_weight
+FROM Temp_Avg_Height_Weight_Nationality t
+         JOIN Nationalities n ON t.nationality_code = n.nationality_code
+WHERE t.avg_height > 180 AND t.avg_weight < 75;
+
+--8)
+SELECT a.name AS athlete_name,
+       d.discipline_name AS expected_discipline,
+       e.event_name
+FROM Athlete_Disciplines_Events ade
+         JOIN Athletes a ON ade.athlete_code = a.code
+         JOIN Disciplines d ON ade.discipline_id = d.discipline_id
+         JOIN Events e ON ade.event_id = e.event_id
+         LEFT JOIN Disciplines d2 ON d2.discipline_id = (SELECT d3.discipline_id
+                                                         FROM Events e2
+                                                                  JOIN Athlete_Disciplines_Events ade2
+                                                                       ON e2.event_id = ade2.event_id
+                                                                  JOIN Disciplines d3
+                                                                       ON ade2.discipline_id = d3.discipline_id
+                                                         WHERE e2.event_id = e.event_id
+                                                         LIMIT 1)
+WHERE d.discipline_id <> d2.discipline_id;

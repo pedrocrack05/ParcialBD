@@ -1,0 +1,42 @@
+INSERT INTO pet_types (pet_type_name)
+SELECT DISTINCT pet_type_name
+FROM (
+         VALUES ('Cats'), ('Dogs'), ('None')
+     ) AS t(pet_type_name)
+ON CONFLICT (pet_type_name) DO NOTHING;
+
+INSERT INTO apartment_pet_types (apartment_id, pet_type_id)
+SELECT
+    ta.apartment_id,
+    pt.pet_type_id
+FROM
+    temp_apartments_with_amenities_and_pets ta
+        JOIN
+    pet_types pt
+    ON
+        pt.pet_type_name = ANY(string_to_array(ta.pets_allowed, ','))
+WHERE
+    ta.pets_allowed IS NOT NULL;
+
+INSERT INTO amenities (amenity_name)
+SELECT DISTINCT unnest(string_to_array(amenity, ','))
+FROM (
+         SELECT amenities as amenity
+         FROM temp_apartments_with_amenities_and_pets
+         WHERE amenities IS NOT NULL
+     ) AS subquery
+ON CONFLICT (amenity_name) DO NOTHING;
+
+INSERT INTO apartment_amenities (apartment_id, amenity_id)
+SELECT
+    ta.apartment_id,
+    a.amenity_id
+FROM
+    temp_apartments_with_amenities_and_pets ta
+        CROSS JOIN LATERAL unnest(string_to_array(ta.amenities, ',')) AS amenity_name(amenity_name)
+        JOIN amenities a
+             ON a.amenity_name = amenity_name.amenity_name
+WHERE
+    ta.amenities IS NOT NULL;
+
+
